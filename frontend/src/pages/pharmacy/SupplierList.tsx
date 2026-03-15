@@ -26,7 +26,8 @@ const SupplierList: React.FC = () => {
 
   useEffect(() => { fetchSuppliers(); }, [fetchSuppliers]);
 
-  const handleDelete = async (id: string) => {
+const handleDelete = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (!window.confirm('Delete this supplier?')) return;
     try {
       await pharmacyService.deleteSupplier(id);
@@ -38,71 +39,101 @@ const SupplierList: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">Suppliers</h1>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Supplier Directory</h1>
+          <p className="mt-1 text-sm text-slate-500">Manage medicine vendors, procurement contacts, and tax compliance details.</p>
+        </div>
         <button onClick={() => navigate('/pharmacy/suppliers/new')}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90">
-          <span className="material-symbols-outlined text-lg">add</span> Add Supplier
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors">
+          <span className="material-symbols-outlined text-base">add</span>
+          Add Supplier
         </button>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
-        <input type="text" placeholder="Search suppliers..." value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-primary" />
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="relative max-w-md">
+          <span className="absolute inset-y-0 left-3 flex items-center text-slate-400">
+            <span className="material-symbols-outlined text-lg">search</span>
+          </span>
+          <input type="text" placeholder="Search by supplier name, contact, or email" value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 py-2 pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all" />
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center h-40">
-            <span className="material-symbols-outlined animate-spin text-3xl text-primary">progress_activity</span>
-          </div>
-        ) : suppliers.length === 0 ? (
-          <div className="text-center py-12 text-slate-500">
-            <span className="material-symbols-outlined text-4xl mb-2 block">local_shipping</span>
-            <p className="font-medium">No suppliers found</p>
-          </div>
-        ) : (
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="px-4 py-3 font-semibold text-slate-600">Name</th>
-                <th className="px-4 py-3 font-semibold text-slate-600">Contact Person</th>
-                <th className="px-4 py-3 font-semibold text-slate-600">Phone</th>
-                <th className="px-4 py-3 font-semibold text-slate-600">Email</th>
-                <th className="px-4 py-3 font-semibold text-slate-600">GST No.</th>
-                <th className="px-4 py-3 font-semibold text-slate-600 text-right">Actions</th>
+                <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Name & Contact</th>
+                <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Phone / Email</th>
+                <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">GST No.</th>
+                <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Terms</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {suppliers.map(s => (
-                <tr key={s.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-900">{s.name}</td>
-                  <td className="px-4 py-3 text-slate-600">{s.contact_person || '-'}</td>
-                  <td className="px-4 py-3 text-slate-600">{s.phone || '-'}</td>
-                  <td className="px-4 py-3 text-slate-600">{s.email || '-'}</td>
-                  <td className="px-4 py-3 text-slate-600">{s.gst_number || '-'}</td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-1">
-                      <button onClick={() => navigate(`/pharmacy/suppliers/${s.id}/edit`)}
-                        className="p-1.5 text-slate-400 hover:text-primary rounded-lg hover:bg-slate-100">
-                        <span className="material-symbols-outlined text-lg">edit</span>
-                      </button>
-                      <button onClick={() => handleDelete(s.id)}
-                        className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50">
-                        <span className="material-symbols-outlined text-lg">delete</span>
-                      </button>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-12 text-center text-slate-400">
+                    <span className="material-symbols-outlined animate-spin text-3xl">progress_activity</span>
                   </td>
                 </tr>
-              ))}
+              ) : suppliers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-12 text-center">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-50 mb-3">
+                      <span className="material-symbols-outlined text-2xl text-slate-400">local_shipping</span>
+                    </div>
+                    <p className="text-slate-500 font-medium">No suppliers found</p>
+                  </td>
+                </tr>
+              ) : (
+                suppliers.map(s => (
+                  <tr key={s.id} className="hover:bg-slate-50 cursor-pointer transition-colors" onClick={() => navigate(`/pharmacy/suppliers/${s.id}/edit`)}>
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-slate-900">{s.name}</p>
+                      {s.contact_person && <p className="text-xs text-slate-500">{s.contact_person}</p>}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-slate-700">{s.phone || '—'}</span>
+                        {s.email && <span className="text-xs text-slate-500">{s.email}</span>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 font-mono text-xs">{s.gst_number || '—'}</td>
+                    <td className="px-4 py-3">
+                      {s.payment_terms ? (
+                        <span className="inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                          {s.payment_terms}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex justify-end gap-1">
+                        <button onClick={() => navigate(`/pharmacy/suppliers/${s.id}/edit`)}
+                          title="Edit Supplier"
+                          className="p-1.5 text-slate-400 hover:text-primary rounded-lg hover:bg-slate-100 transition-colors">
+                          <span className="material-symbols-outlined text-lg">edit</span>
+                        </button>
+                        <button onClick={(e) => handleDelete(s.id, e)}
+                          title="Delete Supplier"
+                          className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors">
+                          <span className="material-symbols-outlined text-lg">delete</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        )}
+        </div>
       </div>
     </div>
   );
